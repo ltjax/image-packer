@@ -110,13 +110,21 @@ void PackImages(boost::filesystem::path const& ResultImage, std::vector<ImageEnt
 	
 	// Use an appropriate starting size
 	int PixelCount=0;
+	int MinWidth=0;
+	int MinHeight=0;
+
 	for (auto i=List.begin(); i!=List.end(); ++i)
 	{
 		auto&& Image(*i->Image);
+		MinWidth=std::max<int>(MinWidth, Image.get_width());
+		MinHeight=std::max<int>(MinHeight, Image.get_height());
 		PixelCount+=Image.get_width()*Image.get_height();
 	}
 	
 	int Width=128, Height=128;
+
+	while (Width<MinWidth) Width *= 2;
+	while (Height<MinHeight) Height *= 2;
 	
 	while (Width*Height < PixelCount || !PackInto(List, Width, Height))
 	{
@@ -127,6 +135,7 @@ void PackImages(boost::filesystem::path const& ResultImage, std::vector<ImageEnt
 	}
 	
 	auto Result=replay::pixbuf::create(Width, Height, replay::pixbuf::rgba);
+	Result->fill(0,0,0,0);
 	
 	BlitImages(*Result, List);
 	
