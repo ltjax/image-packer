@@ -149,7 +149,16 @@ void WriteDictionary(std::ofstream& File, const std::string& DictionaryName, std
 	for (auto i=List.begin(); i!=List.end(); ++i)
 	{
 		auto&& Box=i->Box;
-		File << "  \"" << i->RelativePath.string() << "\"={Box={" << Box.left << "," << Box.bottom << "," << Box.right << "," << Box.top << "}}";
+
+		// Remove the file extension
+		boost::filesystem::path NameOnly=i->RelativePath;
+		NameOnly.replace_extension();
+
+		File << "  [\"" << NameOnly.string() << "\"]={Box={"
+			<< "x=" << Box.left <<
+			", y=" << Box.bottom <<
+			", w=" << Box.get_width() <<
+			", h=" << Box.get_height() << "}}";
 		
 		if (i+1 != List.end())
 			File << ",\n";
