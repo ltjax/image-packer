@@ -58,7 +58,8 @@ AnalyzeLine(replay::pixbuf const& Image, unsigned int Offset, unsigned int Axis)
 	if (Coord[0]!=w && Coord[1]!=h)
 		throw std::invalid_argument("Invalid black-line size specifier.");
 
-	return std::make_tuple(Begin, End);
+	// Substract 1 because of the added border (results need to be relative to the cropped image)
+	return std::make_tuple(Begin-1, End-1);
 }
 
 void AddFile(std::vector<ImageEntryType>& List, boost::filesystem::path const& FilePath, boost::filesystem::path const& RelativeFilePath)
