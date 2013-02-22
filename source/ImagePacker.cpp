@@ -220,9 +220,12 @@ void WriteBox(std::ofstream& File, replay::box<int> const& Box)
 		", h=" << Box.get_height();
 }
 
-void WriteDictionary(std::ofstream& File, const std::string& DictionaryName, const std::string& NinePatchDir, std::vector<ImageEntryType> const& List)
+void WriteDictionary(std::ofstream& File, const std::string& ModuleName, const std::string& DictionaryName, const std::string& NinePatchDir, std::vector<ImageEntryType> const& List)
 {
-	File << "local " << DictionaryName << "= {\n";
+	File << "module(\""<<ModuleName<<"\", package.seeall);\n\n";
+
+	File << "-- Dictionary for regular images\n";
+	File << DictionaryName << "={\n";
 
 	std::size_t NinePatchCount=0;
 	
@@ -254,7 +257,8 @@ void WriteDictionary(std::ofstream& File, const std::string& DictionaryName, con
 	
 	if (NinePatchCount)
 	{
-		File << "\nlocal " << NinePatchDir << "= {\n";
+		File << "-- Dictionary for 9patch images\n";
+		File << NinePatchDir << "={\n";
 		for (auto i=List.begin(); i!=List.end(); ++i)
 		{
 			auto&& Box=i->Box;
@@ -288,22 +292,30 @@ void WriteDictionary(std::ofstream& File, const std::string& DictionaryName, con
 
 void MakePackedImage(
 	boost::filesystem::path const& ImagePath,
-	boost::filesystem::path const& DictionaryPath,
+	boost::filesystem::path const& ScriptPath,
 	std::string const& DictionaryName,
 	std::vector<std::string> const& SourceList)
 {
 	
 	std::vector<ImageEntryType> ImageList;
 	
-	boost::filesystem::ofstream DictionaryFile(DictionaryPath, std::ios::trunc);
+	boost::filesystem::ofstream DictionaryFile(ScriptPath, std::ios::trunc);
 	
 	for (auto i=begin(SourceList); i!=end(SourceList); ++i)
 	{
 		ScanFile(ImageList, *i);
 	}
+
+	// Construct the module name from the filename
+	std::string ModuleName;
+	{
+		auto p=ScriptPath.leaf();
+		p.replace_extension();
+		ModuleName=p.string();
+	}
 	
 	PackImages(ImagePath, ImageList);
-	WriteDictionary(DictionaryFile, DictionaryName, "NinePatches", ImageList);
+	WriteDictionary(DictionaryFile, ModuleName, DictionaryName, "NinePatches", ImageList);
 }
 
 int main(int argc, char* argv[])
@@ -314,14 +326,14 @@ int main(int argc, char* argv[])
 	po::options_description desc("Allowed options");
 	
 	
-	std::string ImagePath, DictionaryPath, DictionaryName;
+	std::string ImagePath, ScriptPath, DictionaryName;
 	std::string Code;
 	std::vector<std::string> SourceList;
 	
 	desc.add_options()
 		("image-path", po::value<std::string>(&ImagePath)->default_value("packed_image.png"), "Set the path where to write the packed image data")
-		("dict-path", po::value<std::string>(&DictionaryPath)->default_value("packed_image.lua"), "Set the path where to write the dictionary for the image data")
-		("dict-name", po::value<std::string>(&DictionaryName)->default_value("Dictionary"), "Set the variable-name for the generated table")
+		("script-path", po::value<std::string>(&ScriptPath)->default_value("packed_image.lua"), "Set the path where to write the dictionary for the image data")
+		("dict-name", po::value<std::string>(&DictionaryName)->default_value("Images"), "Set the variable-name for the generated table")
 		("image", po::value<std::vector<std::string>>(&SourceList), "Individual paths or folders to use as sources")
 	;
 	
@@ -334,7 +346,7 @@ int main(int argc, char* argv[])
 	po::notify(VariableMap);
 	
 	try {
-		MakePackedImage(ImagePath, DictionaryPath, DictionaryName, SourceList);
+		MakePackedImage(ImagePath, ScriptPath, DictionaryName, SourceList);
 		
 	} catch (std::exception const& Error)
 	{
