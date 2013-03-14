@@ -93,10 +93,10 @@ void AddFile(std::vector<ImageEntryType>& List, boost::filesystem::path const& F
 		auto FillY=AnalyzeLine(*Image, w-1, 1);
 
 		if (std::get<0>(FillX)==std::get<1>(FillX))
-			FillX=std::make_tuple(0, w-2);
+			FillX=ScalableX;
 
 		if (std::get<0>(FillY)==std::get<1>(FillY))
-			FillY=std::make_tuple(0, h-2);
+			FillY=ScalableY;
 		
 		Entry.ScaleableArea.set(std::get<0>(ScalableX), std::get<0>(ScalableY), std::get<1>(ScalableX), std::get<1>(ScalableY));
 		Entry.FillArea.set(std::get<0>(FillX), std::get<0>(FillY), std::get<1>(FillX), std::get<1>(FillY));
@@ -313,6 +313,13 @@ void MakePackedImage(
 		p.replace_extension();
 		ModuleName=p.string();
 	}
+
+	// Sort according to size (max edge length)
+	std::sort(ImageList.begin(), ImageList.end(), [](ImageEntryType const& Lhs, ImageEntryType const& Rhs) ->bool {
+		auto&& a=*Lhs.Image;
+		auto&& b=*Rhs.Image;
+		return std::max(a.get_width(), a.get_height()) > std::max(b.get_width(), b.get_height());
+	});
 	
 	PackImages(ImagePath, ImageList);
 	WriteDictionary(DictionaryFile, ModuleName, DictionaryName, "NinePatches", ImageList);
@@ -320,8 +327,6 @@ void MakePackedImage(
 
 int main(int argc, char* argv[])
 {
-	namespace po = boost::program_options;
-	
 	namespace po = boost::program_options;
 	po::options_description desc("Allowed options");
 	
