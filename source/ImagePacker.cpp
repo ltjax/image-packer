@@ -222,10 +222,10 @@ void WriteBox(std::ofstream& File, replay::box<int> const& Box)
 
 void WriteDictionary(std::ofstream& File, const std::string& ModuleName, const std::string& DictionaryName, const std::string& NinePatchDir, std::vector<ImageEntryType> const& List)
 {
-	File << "module(\""<<ModuleName<<"\", package.seeall);\n\n";
+	File << "local "<<ModuleName<<"={}\n\n";
 
 	File << "-- Dictionary for regular images\n";
-	File << DictionaryName << "={\n";
+	File << ModuleName << "." << DictionaryName << "={\n";
 
 	std::size_t NinePatchCount=0;
 	
@@ -253,12 +253,12 @@ void WriteDictionary(std::ofstream& File, const std::string& ModuleName, const s
 		else
 			File << "\n";
 	}
-	File << "}\n";
+	File << "}\n\n";
 	
 	if (NinePatchCount)
 	{
-		File << "-- Dictionary for 9patch images\n";
-		File << NinePatchDir << "={\n";
+		File<<"-- Dictionary for 9patch images\n";
+		File<<ModuleName<<"."<<NinePatchDir<<"={\n";
 		for (auto i=List.begin(); i!=List.end(); ++i)
 		{
 			auto&& Box=i->Box;
@@ -286,8 +286,10 @@ void WriteDictionary(std::ofstream& File, const std::string& ModuleName, const s
 			else
 				File << "\n";
 		}
-		File << "}\n";
+		File << "}\n\n";
 	}
+
+	File<<"return "<<ModuleName<<std::endl;
 }
 
 void MakePackedImage(
