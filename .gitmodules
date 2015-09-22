@@ -1,0 +1,3 @@
+[submodule "externals/replay"]
+	path = externals/replay
+	url = https://github.com/ltjax/replay.git
