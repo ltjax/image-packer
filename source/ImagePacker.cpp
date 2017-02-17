@@ -1,6 +1,3 @@
-
-#define REPLAY_USE_LIBPNG
-
 #include <replay/pixbuf.hpp>
 #include <replay/pixbuf_io.hpp>
 #include <replay/box_packer.hpp>
@@ -13,6 +10,7 @@
 #include <boost/optional.hpp>
 #include <replay/pixbuf_io.hpp>
 #include <tuple>
+#include <iostream>
 
 struct ImageEntryType
 {
@@ -222,7 +220,7 @@ void PackImages(boost::filesystem::path const& ResultImage, std::vector<ImageEnt
     
     BlitImages(*Result, List);
     
-    replay::pixbuf_io::save_to_png_file(File, *Result, 9);
+    replay::pixbuf_io::save_to_png_file(File, *Result);
 }
 
 void WriteBox(std::ofstream& File, replay::box<int> const& Box)
