@@ -1,18 +1,24 @@
 
 set(TARGET_NAME	ImagePacker)
 
-
-include_directories(
-  ${replay_SOURCE_DIR}/include
-  ${Boost_INCLUDE_DIR}
-)
-
 add_executable(${TARGET_NAME}
 	ImagePacker.cpp
 )
-
 # Linker settings
 target_link_libraries(${TARGET_NAME} 
-  replay
-  ${Boost_LIBRARIES}
+  PUBLIC replay
 )
+
+if (DEFINED ImagePacker_INJECTED_BOOST_TARGETS)
+  target_link_libraries(${TARGET_NAME} 
+    PUBLIC ${ImagePacker_INJECTED_BOOST_TARGETS}
+  )
+else()
+  target_link_libraries(${TARGET_NAME} 
+    PUBLIC ${Boost_LIBRARIES}
+  )
+
+  target_include_directories(${TARGET_NAME} 
+    PUBLIC ${Boost_INCLUDE_DIR}
+  )
+endif()
