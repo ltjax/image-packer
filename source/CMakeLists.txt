@@ -9,9 +9,9 @@ target_link_libraries(${TARGET_NAME}
   PUBLIC replay
 )
 
-if (DEFINED ImagePacker_INJECTED_BOOST_TARGETS)
+if (DEFINED image_packer_BOOST_TARGETS)
   target_link_libraries(${TARGET_NAME} 
-    PUBLIC ${ImagePacker_INJECTED_BOOST_TARGETS}
+    PUBLIC ${image_packer_BOOST_TARGETS}
   )
 else()
   target_link_libraries(${TARGET_NAME} 
