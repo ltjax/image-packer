@@ -6,7 +6,7 @@ add_executable(${TARGET_NAME}
 )
 # Linker settings
 target_link_libraries(${TARGET_NAME} 
-  PUBLIC replay
+  PUBLIC CONAN_PKG::replay
 )
 
 if (DEFINED image_packer_BOOST_TARGETS)
