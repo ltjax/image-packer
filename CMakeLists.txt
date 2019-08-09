@@ -8,15 +8,6 @@ if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++")
 endif()
 
-if (NOT DEFINED image_packer_BOOST_TARGETS)
-  find_package(Boost COMPONENTS system program_options filesystem iostreams chrono REQUIRED)
-endif()
-
 add_definitions(-DUNICODE -D_UNICODE)
-if(image_packer_REPLAY_AS_EXTERNAL)
-  message("image_packer: Using replay from external")
-  add_subdirectory(externals/replay)
-endif()
-
 add_subdirectory(source)
 

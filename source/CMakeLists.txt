@@ -7,18 +7,10 @@ add_executable(${TARGET_NAME}
 # Linker settings
 target_link_libraries(${TARGET_NAME} 
   PUBLIC CONAN_PKG::replay
+  PUBLIC CONAN_PKG::boost_range
+  PUBLIC CONAN_PKG::boost_math
+  PUBLIC CONAN_PKG::boost_optional
+  PUBLIC CONAN_PKG::boost_system
+  PUBLIC CONAN_PKG::boost_filesystem
+  PUBLIC CONAN_PKG::boost_program_options
 )
-
-if (DEFINED image_packer_BOOST_TARGETS)
-  target_link_libraries(${TARGET_NAME} 
-    PUBLIC ${image_packer_BOOST_TARGETS}
-  )
-else()
-  target_link_libraries(${TARGET_NAME} 
-    PUBLIC ${Boost_LIBRARIES}
-  )
-
-  target_include_directories(${TARGET_NAME} 
-    PUBLIC ${Boost_INCLUDE_DIR}
-  )
-endif()
