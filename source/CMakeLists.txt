@@ -9,7 +9,5 @@ target_link_libraries(${TARGET_NAME}
   PUBLIC CONAN_PKG::replay
   PUBLIC CONAN_PKG::boost_range
   PUBLIC CONAN_PKG::boost_math
-  PUBLIC CONAN_PKG::boost_optional
-  PUBLIC CONAN_PKG::boost_system
   PUBLIC CONAN_PKG::boost_program_options
 )

@@ -1,5 +1,4 @@
 #include <boost/algorithm/string/predicate.hpp>
-#include <boost/optional.hpp>
 #include <boost/program_options.hpp>
 #include <iostream>
 #include <replay/box_packer.hpp>
