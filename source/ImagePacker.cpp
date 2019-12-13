@@ -28,7 +28,7 @@ struct ImageEntryType
 std::tuple<unsigned int, unsigned int> AnalyzeLine(replay::pixbuf const& Image, unsigned int Offset, unsigned int Axis)
 {
     // This needs RGBA
-    assert(Image.get_channels() == 4);
+    assert(Image.channel_count() == 4);
 
     replay::vector2i Coord(0);
     Coord[Axis ^ 1] = Offset;
