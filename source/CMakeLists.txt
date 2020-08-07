@@ -8,4 +8,5 @@ add_executable(${TARGET_NAME}
 target_link_libraries(${TARGET_NAME} 
   PUBLIC CONAN_PKG::replay
   PUBLIC CONAN_PKG::boost
+  PUBLIC CONAN_PKG::fmt
 )

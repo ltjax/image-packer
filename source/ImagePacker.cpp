@@ -1,12 +1,16 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/program_options.hpp>
+#include <boost/algorithm/string.hpp>
+#include <fmt/format.h>
+#include <fstream>
 #include <iostream>
 #include <replay/box_packer.hpp>
 #include <replay/pixbuf.hpp>
 #include <replay/pixbuf_io.hpp>
 #include <replay/vector2.hpp>
 #include <tuple>
-#include <fstream>
+
+using KeyValueList = std::vector<std::pair<std::string, std::string>>;
 
 struct ImageEntryType
 {
@@ -220,81 +224,97 @@ void PackImages(std::filesystem::path const& ResultImage, std::vector<ImageEntry
     replay::pixbuf_io::save_to_png_file(File, Result);
 }
 
-void WriteBox(std::ofstream& File, replay::box<int> const& Box)
+void WriteBox(std::ostream& File, replay::box<int> const& Box)
 {
     File << "x=" << Box.left << ", y=" << Box.bottom << ", w=" << Box.get_width() << ", h=" << Box.get_height();
 }
 
-void WriteDictionary(std::ofstream& File,
-                     const std::string& ModuleName,
-                     const std::string& DictionaryName,
-                     const std::string& NinePatchDir,
-                     std::vector<ImageEntryType> const& List)
+void WriteTable(std::ofstream& File,
+                std::string const& TableName,
+                std::vector<std::pair<std::string, std::string>> KeysAndValues)
 {
-    File << "local " << ModuleName << "={}\n\n";
+    using boost::algorithm::ilexicographical_compare;
 
-    File << "-- Dictionary for regular images\n";
-    File << ModuleName << "." << DictionaryName << "={\n";
+    // Lua tables do not care about the order, so we can
+    // sort them which makes for nicer diffs in the generated files
+    auto CompareFirst = [](auto const& Left, auto const& Right) {
+        return ilexicographical_compare(Left.first, Right.first);
+    };
 
-    std::size_t NinePatchCount = 0;
+    std::sort(KeysAndValues.begin(), KeysAndValues.end(), CompareFirst);
 
-    for (auto i = List.begin(); i != List.end(); ++i)
+    // Write out the actual table
+    File << TableName << "={\n";
+    for (auto i = KeysAndValues.begin(); i != KeysAndValues.end(); ++i)
     {
-        auto&& Box = i->Box;
+        File << fmt::format("  [\"{0}\"]={1}", i->first, i->second);
 
-        if (i->IsNinePatch)
-        {
-            ++NinePatchCount;
-            continue;
-        }
-
-        // Remove the file extension
-        auto NameOnly = i->RelativePath;
-        NameOnly.replace_extension();
-
-        File << "\t[\"" << NameOnly.string();
-        File << "\"]={Box={";
-        WriteBox(File, Box);
-        File << "}}";
-
-        if (i + 1 != List.end())
+        if (i + 1 != KeysAndValues.end())
             File << ",\n";
         else
             File << "\n";
     }
     File << "}\n\n";
+}
 
-    if (NinePatchCount)
+void WriteDictionary(std::ofstream& File,
+                     std::string const& ModuleName,
+                     std::string const& ImageTableName,
+                     std::string const& NinePatchTableName,
+                     std::vector<ImageEntryType> const& List)
+{
+
+    KeyValueList Sections;
+    KeyValueList NinePatches;
+
+    for (auto i = List.begin(); i != List.end(); ++i)
     {
-        File << "-- Dictionary for 9patch images\n";
-        File << ModuleName << "." << NinePatchDir << "={\n";
-        for (auto i = List.begin(); i != List.end(); ++i)
+        std::ostringstream Str;        
+        auto&& Box = i->Box;
+
+        if (i->IsNinePatch)
         {
-            auto&& Box = i->Box;
-
-            if (!i->IsNinePatch)
-                continue;
-
             // Remove the file extension
             std::filesystem::path NameOnly = i->RelativePath;
             NameOnly.replace_extension();
             NameOnly.replace_extension(); // twice for the ".9"
 
-            File << "\t[\"" << NameOnly.string();
-            File << "\"]={Box={";
-            WriteBox(File, Box);
-            File << "}, Scalable={";
-            WriteBox(File, i->ScaleableArea);
-            File << "}, Fill={";
-            WriteBox(File, i->FillArea);
-            File << "}}";
+            Str << "{Box={";
+            WriteBox(Str, Box);
+            Str << "}, Scalable={";
+            WriteBox(Str, i->ScaleableArea);
+            Str << "}, Fill={";
+            WriteBox(Str, i->FillArea);
+            Str << "}}";
 
-            if (i + 1 != List.end())
-                File << ",\n";
-            else
-                File << "\n";
+            NinePatches.emplace_back(NameOnly.string(), Str.str());
         }
-        File << "}\n\n";
+        else
+        {
+            // Remove the file extension
+            auto NameOnly = i->RelativePath;
+            NameOnly.replace_extension();
+
+            Str << "{Box={";
+            WriteBox(Str, Box);
+            Str << "}}";
+
+            Sections.emplace_back(NameOnly.string(), Str.str());
+        }
+    }
+
+    File << "local " << ModuleName << "={}\n\n";
+
+    if (!Sections.empty())
+    {
+        File << "-- Table for regular images\n";
+        WriteTable(File, ModuleName + "." + ImageTableName, std::move(Sections));
+    }
+
+    if (!NinePatches.empty())
+    {
+        File << "-- Table for 9patch images\n";
+        WriteTable(File, ModuleName + "." + NinePatchTableName, std::move(NinePatches));
     }
 
     File << "return " << ModuleName << std::endl;
