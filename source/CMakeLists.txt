@@ -6,7 +6,7 @@ add_executable(${TARGET_NAME}
 )
 # Linker settings
 target_link_libraries(${TARGET_NAME} 
-  PUBLIC CONAN_PKG::replay
-  PUBLIC CONAN_PKG::boost
-  PUBLIC CONAN_PKG::fmt
+  PUBLIC replay::replay
+  PUBLIC boost::boost
+  PUBLIC fmt::fmt
 )

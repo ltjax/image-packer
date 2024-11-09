@@ -7,7 +7,7 @@
 #include <replay/box_packer.hpp>
 #include <replay/pixbuf.hpp>
 #include <replay/pixbuf_io.hpp>
-#include <replay/vector2.hpp>
+#include <replay/v2.hpp>
 #include <tuple>
 
 using KeyValueList = std::vector<std::pair<std::string, std::string>>;
